@@ -1,0 +1,34 @@
+REFERENCE ASSEMBLY [ExtR];
+
+DEPLOY RESOURCE @"/usqlext/samples/R/RinUSQL_PredictUsingLinearModelasDF.R";
+DEPLOY RESOURCE @"/usqlext/samples/R/my_model_LM_Iris.rda";
+DECLARE @IrisData string = @"/usqlext/samples/R/iris.csv";
+DECLARE @OutputFilePredictions string = @"/my/R/Output/LMPredictionsIris.txt";
+DECLARE @PartitionCount int = 10;
+
+@InputData =
+    EXTRACT 
+        SepalLength double,
+        SepalWidth double,
+        PetalLength double,
+        PetalWidth double,
+        Species string
+    FROM @IrisData
+    USING Extractors.Csv();
+
+@ExtendedData =
+    SELECT 
+        Extension.R.RandomNumberGenerator.GetRandomNumber(@PartitionCount) AS Par,
+        SepalLength,
+        SepalWidth,
+        PetalLength,
+        PetalWidth
+    FROM @InputData;
+
+// Predict Species
+
+@RScriptOutput = REDUCE @ExtendedData ON Par
+    PRODUCE Par, fit double, lwr double, upr double
+    READONLY Par
+    USING new Extension.R.Reducer(scriptFile:"RinUSQL_PredictUsingLinearModelasDF.R", rReturnType:"dataframe", stringsAsFactors:false);
+    OUTPUT @RScriptOutput TO @OutputFilePredictions USING Outputters.Tsv();
