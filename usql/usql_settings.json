@@ -1,0 +1,8 @@
+{
+    "defaultContext": {
+        "account": "sampleusqlpost",
+        "database": "master",
+        "schema": "dbo"
+    },
+    "scripts": []
+}

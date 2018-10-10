@@ -1,0 +1,12 @@
+@bewertungen  = 
+     SELECT * FROM 
+         (VALUES
+            (1,    "POSTAG",       "eh guat"),
+            (2,    "Kärnten",      "super"), 
+            (3,    "Osttirol",     "echt schlecht")
+         ) AS 
+            D( Id, Entity, Evaluation );
+
+ OUTPUT @bewertungen
+     TO "/Output/bewertung.csv"
+ USING Outputters.Csv();
